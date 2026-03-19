@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyMiniCloud Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --accent: #22d3ee;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image: radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent),
+                              radial-gradient(circle at bottom left, rgba(34, 211, 238, 0.1), transparent);
+        }
+
+        nav {
+            padding: 1.5rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 4rem 1rem;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            color: var(--text-dim);
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(20px);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-healthy { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .status-unhealthy { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-cpu { background: var(--primary); }
+        .progress-ram { background: var(--accent); }
+
+        .metric-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: var(--text-dim);
+            margin-top: 1rem;
+        }
+
+        footer {
+            margin-top: 5rem;
+            padding: 3rem;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-dim);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">MyMiniCloud</div>
+        <div id="system-status" class="status-badge status-healthy">System Online</div>
+    </nav>
+
+    <div class="container">
+        <header class="hero">
+            <h1>Infrastructure Control</h1>
+            <p>Seamless management for your containerized cloud environment.</p>
+        </header>
+
+        <div id="nodes-container" class="stats-grid">
+            <!-- Nodes will be loaded here -->
+            <div class="card loading">
+                <h3>Loading...</h3>
+                <div class="metric-label">Connecting to orchestration API...</div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2026 MyMiniCloud Operations. Powered by Nginx & Flask.
+    </footer>
+
+    <script>
+        async function fetchStatus() {
+            try {
+                // Fetching from proxy (which routes to app-server)
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                renderNodes(data.nodes);
+            } catch (error) {
+                console.error('Error fetching system status:', error);
+                document.getElementById('nodes-container').innerHTML = `
+                    <div class="card" style="border-color: var(--danger)">
+                        <h3>Connection Error</h3>
+                        <p style="color: var(--danger)">Unable to connect to the Application Server API. Check Proxy/App-Server status.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderNodes(nodes) {
+            const container = document.getElementById('nodes-container');
+            container.innerHTML = '';
+
+            nodes.forEach(node => {
+                const nodeCard = document.createElement('div');
+                nodeCard.className = 'card';
+                nodeCard.innerHTML = `
+                    <h3>
+                        ${node.nodename}
+                        <span class="status-badge status-${node.status}">${node.status}</span>
+                    </h3>
+                    <div class="metric-group">
+                        <div class="metric-label">
+                            <span>CPU Usage</span>
+                            <span>${node.cpu}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill progress-cpu" style="width: ${node.cpu}%"></div>
+                        </div>
+                    </div>
+                    <div class="metric-group">
+                        <div class="metric-label">
+                            <span>RAM Usage</span>
+                            <span>${node.ram}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill progress-ram" style="width: ${node.ram}%"></div>
+                        </div>
+                    </div>
+                    <div class="metric-label" style="font-size: 0.7rem; margin-top: 1.5rem;">
+                        Last check: ${new Date(node.timestamp).toLocaleTimeString()}
+                    </div>
+                `;
+                container.appendChild(nodeCard);
+            });
+        }
+
+        // Fetch immediately and then every 10 seconds
+        fetchStatus();
+        setInterval(fetchStatus, 10000);
+    </script>
+</body>
+</html>

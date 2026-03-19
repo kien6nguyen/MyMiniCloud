@@ -1,0 +1,20 @@
+.:53 {
+    # Logging all requests
+    log
+    # Errors to stdout
+    errors
+    # Internal service mapping
+    hosts {
+        172.18.0.2 m-web.cloud.local
+        172.18.0.3 m-app.cloud.local
+        172.18.0.4 m-db.cloud.local
+        # fallback to next nameserver
+        fallthrough
+    }
+    # DNS Proxy for everything else
+    forward . 8.8.8.8 8.8.4.4
+    # Buffer cache
+    cache 30
+    # Enable metrics for prometheus scraping
+    prometheus :9153
+}

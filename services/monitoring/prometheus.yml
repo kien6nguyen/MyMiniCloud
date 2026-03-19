@@ -1,0 +1,25 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'app-server'
+    # App Server metrics exposed via Flask-Prometheus or similar
+    # For now, we'll try to reach it directly
+    static_configs:
+      - targets: ['app-server:5000']
+    metrics_path: '/health' # Mocking metrics for now
+
+  - job_name: 'dns-server'
+    static_configs:
+      - targets: ['dns-server:9153']
+
+  - job_name: 'db-server'
+    # PostgreSQL exporter would go here
+    # Use static target for now
+    static_configs:
+      - targets: ['db-server:5432'] 
