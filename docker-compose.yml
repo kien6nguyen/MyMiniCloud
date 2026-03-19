@@ -1,0 +1,110 @@
+
+services:
+  # 1. Web Server
+  web-server:
+    image: nginx:alpine
+    container_name: web-server
+    volumes:
+      - ./services/web-server/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./services/web-server/html:/usr/share/nginx/html:ro
+    networks:
+      - cloud-net
+    depends_on:
+      - app-server
+
+  # 2. Application Server
+  app-server:
+    build: ./services/app-server
+    container_name: app-server
+    environment:
+      - DB_HOST=db-server
+      - DB_USER=postgres
+      - DB_PASSWORD=mycloudroot
+      - DB_NAME=cloud_db
+    networks:
+      - cloud-net
+    depends_on:
+      - db-server
+      - auth-server
+
+  # 3. Database Server
+  db-server:
+    image: postgres:15-alpine
+    container_name: db-server
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mycloudroot
+      - POSTGRES_DB=cloud_db
+    volumes:
+      - ./services/db-server/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - cloud-net
+
+  # 4. Authentication Server
+  auth-server:
+    build: ./services/auth-server
+    container_name: auth-server
+    networks:
+      - cloud-net
+
+  # 5. File Storage / Object Storage
+  storage-server:
+    image: minio/minio
+    container_name: storage-server
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=cloudadmin
+      - MINIO_ROOT_PASSWORD=cloudstorage
+    volumes:
+      - ./services/storage-server/data:/data
+    networks:
+      - cloud-net
+
+  # 6. DNS / Name Service
+  dns-server:
+    image: coredns/coredns
+    container_name: dns-server
+    volumes:
+      - ./networking/coredns/Corefile:/Corefile
+    command: -conf /Corefile
+    networks:
+      - cloud-net
+
+  # 7. Monitoring Server
+  monitoring-server:
+    image: prom/prometheus
+    container_name: monitoring-server
+    volumes:
+      - ./services/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - cloud-net
+
+  # 8. Logging / Visualization Server
+  logging-server:
+    image: grafana/grafana
+    container_name: logging-server
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    networks:
+      - cloud-net
+
+  # 9. Reverse Proxy / Load Balancer
+  proxy-server:
+    image: nginx:alpine
+    container_name: proxy-server
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./services/proxy-server/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - cloud-net
+    depends_on:
+      - web-server
+      - app-server
+
+networks:
+  cloud-net:
+    driver: bridge
