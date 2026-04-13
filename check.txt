@@ -1,0 +1,18 @@
+Keycloak
+admin
+admin
+
+MinIO
+cloudadmin
+cloudstorage
+
+docker run --rm --network myminicloud_cloud-net nicolaka/netshoot dig @dns-server web-frontend-server.cloud.local +short
+
+docker exec proxy-server ping -c 3 web-server
+docker exec proxy-server ping -c 3 app-server
+docker exec proxy-server ping -c 3 db-server
+docker exec proxy-server ping -c 3 auth-server
+docker exec proxy-server ping -c 3 storage-server
+docker exec proxy-server ping -c 3 monitoring-server
+docker exec proxy-server ping -c 3 logging-server
+docker exec proxy-server ping -c 3 dns-server

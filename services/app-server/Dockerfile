@@ -3,5 +3,6 @@ RUN apt-get update && apt-get install -y libpq-dev gcc
 WORKDIR /app
 COPY . /app
 RUN pip install flask psycopg2-binary
-EXPOSE 5000
+EXPOSE 8081
 CMD ["python", "app.py"]
+

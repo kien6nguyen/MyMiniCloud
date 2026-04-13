@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,7 +30,7 @@
             color: var(--text-main);
             min-height: 100vh;
             background-image: radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent),
-                              radial-gradient(circle at bottom left, rgba(34, 211, 238, 0.1), transparent);
+                radial-gradient(circle at bottom left, rgba(34, 211, 238, 0.1), transparent);
         }
 
         nav {
@@ -114,8 +115,15 @@
             text-transform: uppercase;
         }
 
-        .status-healthy { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-        .status-unhealthy { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .status-healthy {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .status-unhealthy {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
 
         .progress-bar {
             height: 8px;
@@ -131,8 +139,13 @@
             transition: width 0.5s ease;
         }
 
-        .progress-cpu { background: var(--primary); }
-        .progress-ram { background: var(--accent); }
+        .progress-cpu {
+            background: var(--primary);
+        }
+
+        .progress-ram {
+            background: var(--accent);
+        }
 
         .metric-label {
             display: flex;
@@ -151,16 +164,137 @@
         }
 
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.6; }
-            100% { opacity: 1; }
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+
+            100% {
+                opacity: 1;
+            }
         }
 
         .loading {
             animation: pulse 1.5s infinite;
         }
+
+        /* ── Blog Section ─────────────────────────────── */
+        .section-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 4rem;
+        }
+
+        .blog-card {
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(20px);
+        }
+
+        .blog-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .blog-thumb {
+            width: 100%;
+            aspect-ratio: 16/8;
+            background: rgba(15, 23, 42, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+        }
+
+        .blog-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .blog-body {
+            padding: 1.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .blog-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .blog-tag {
+            padding: 0.2rem 0.65rem;
+            border-radius: 2rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: rgba(99, 102, 241, 0.12);
+            color: var(--primary);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+        }
+
+        .blog-card h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            line-height: 1.4;
+            color: var(--text-main);
+        }
+
+        .blog-card p {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            line-height: 1.6;
+            flex: 1;
+        }
+
+        .blog-read-more {
+            font-size: 0.82rem;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.25rem;
+        }
+
+        .blog-card:hover .blog-read-more {
+            gap: 0.65rem;
+        }
     </style>
 </head>
+
 <body>
     <nav>
         <div class="logo">MyMiniCloud</div>
@@ -173,12 +307,64 @@
             <p>Seamless management for your containerized cloud environment.</p>
         </header>
 
-        <div id="nodes-container" class="stats-grid">
-            <!-- Nodes will be loaded here -->
-            <div class="card loading">
-                <h3>Loading...</h3>
-                <div class="metric-label">Connecting to orchestration API...</div>
-            </div>
+        <!-- ── Blog Section ───────────────────────────── -->
+        <h2 class="section-title">📝 Blog</h2>
+        <div class="blog-grid">
+
+            <a href="blog1.html" class="blog-card" id="blog-card-1">
+                <div class="blog-thumb">
+                    <!-- Replace emoji with: <img src="images/blog1.jpg" alt="Docker Architecture"> -->
+                    🐳
+                </div>
+                <div class="blog-body">
+                    <div class="blog-tags">
+                        <span class="blog-tag">Docker</span>
+                        <span class="blog-tag">Architecture</span>
+                    </div>
+                    <h3>Docker &amp; Container Architecture in MyMiniCloud</h3>
+                    <p>How 9 isolated containers simulate a full cloud platform and communicate over a shared bridge
+                        network.</p>
+                    <span class="blog-read-more">Read more →</span>
+                </div>
+            </a>
+
+            <a href="blog2.html" class="blog-card" id="blog-card-2">
+                <div class="blog-thumb">
+                    <!-- Replace emoji with: <img src="images/blog2.jpg" alt="Nginx Reverse Proxy"> -->
+                    🔀
+                </div>
+                <div class="blog-body">
+                    <div class="blog-tags">
+                        <span class="blog-tag">Nginx</span>
+                        <span class="blog-tag">Networking</span>
+                    </div>
+                    <h3>Nginx as a Reverse Proxy in MyMiniCloud</h3>
+                    <p>Understanding how Nginx routes traffic from port 80 to the correct backend service using
+                        path-based rules.</p>
+                    <span class="blog-read-more">Read more →</span>
+                </div>
+            </a>
+
+            <a href="blog3.html" class="blog-card" id="blog-card-3">
+                <div class="blog-thumb">
+                    <!-- Replace emoji with: <img src="images/blog3.jpg" alt="AWS EC2 Deploy"> -->
+                    ☁️
+                </div>
+                <div class="blog-body">
+                    <div class="blog-tags">
+                        <span class="blog-tag">AWS</span>
+                        <span class="blog-tag">EC2</span>
+                        <span class="blog-tag">DevOps</span>
+                    </div>
+                    <h3>Deploying MyMiniCloud to AWS EC2</h3>
+                    <p>Step-by-step guide to launching an EC2 instance and deploying all 9 containers with a single
+                        script.</p>
+                    <span class="blog-read-more">Read more →</span>
+                </div>
+            </a>
+
+        </div>
+
         </div>
     </div>
 
@@ -187,65 +373,9 @@
     </footer>
 
     <script>
-        async function fetchStatus() {
-            try {
-                // Fetching from proxy (which routes to app-server)
-                const response = await fetch('/api/status');
-                const data = await response.json();
-                
-                renderNodes(data.nodes);
-            } catch (error) {
-                console.error('Error fetching system status:', error);
-                document.getElementById('nodes-container').innerHTML = `
-                    <div class="card" style="border-color: var(--danger)">
-                        <h3>Connection Error</h3>
-                        <p style="color: var(--danger)">Unable to connect to the Application Server API. Check Proxy/App-Server status.</p>
-                    </div>
-                `;
-            }
-        }
-
-        function renderNodes(nodes) {
-            const container = document.getElementById('nodes-container');
-            container.innerHTML = '';
-
-            nodes.forEach(node => {
-                const nodeCard = document.createElement('div');
-                nodeCard.className = 'card';
-                nodeCard.innerHTML = `
-                    <h3>
-                        ${node.nodename}
-                        <span class="status-badge status-${node.status}">${node.status}</span>
-                    </h3>
-                    <div class="metric-group">
-                        <div class="metric-label">
-                            <span>CPU Usage</span>
-                            <span>${node.cpu}%</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill progress-cpu" style="width: ${node.cpu}%"></div>
-                        </div>
-                    </div>
-                    <div class="metric-group">
-                        <div class="metric-label">
-                            <span>RAM Usage</span>
-                            <span>${node.ram}%</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill progress-ram" style="width: ${node.ram}%"></div>
-                        </div>
-                    </div>
-                    <div class="metric-label" style="font-size: 0.7rem; margin-top: 1.5rem;">
-                        Last check: ${new Date(node.timestamp).toLocaleTimeString()}
-                    </div>
-                `;
-                container.appendChild(nodeCard);
-            });
-        }
-
-        // Fetch immediately and then every 10 seconds
-        fetchStatus();
-        setInterval(fetchStatus, 10000);
+        // Dashboard initialized
+        console.log("MyMiniCloud Dashboard Ready.");
     </script>
 </body>
+
 </html>
