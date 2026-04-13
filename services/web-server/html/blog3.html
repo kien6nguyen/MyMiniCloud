@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deploying to AWS EC2 | MyMiniCloud Blog</title>
+    <meta name="description" content="Step-by-step guide to deploying MyMiniCloud on an AWS EC2 Ubuntu instance using Docker Compose.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --accent: #22d3ee;
+            --warning: #f59e0b;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image: radial-gradient(circle at top right, rgba(99,102,241,0.15), transparent),
+                              radial-gradient(circle at bottom left, rgba(34,211,238,0.1), transparent);
+        }
+        nav {
+            padding: 1.5rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: gap 0.2s;
+        }
+        .back-btn:hover { gap: 0.75rem; }
+        article {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem 6rem;
+        }
+        .meta {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .tag {
+            padding: 0.25rem 0.85rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(245,158,11,0.1);
+            color: var(--warning);
+            border: 1px solid rgba(245,158,11,0.3);
+        }
+        .date { font-size: 0.85rem; color: var(--text-dim); }
+        h1 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--text-main), var(--warning));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-img {
+            width: 100%;
+            aspect-ratio: 16/7;
+            background: var(--card-bg);
+            border-radius: 1.25rem;
+            border: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2.5rem;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            overflow: hidden;
+        }
+        .hero-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 1.25rem; display: none; }
+        .hero-img img.loaded { display: block; }
+        .step {
+            display: flex;
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+        .step-num {
+            flex-shrink: 0;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-top: 0.1rem;
+        }
+        .step-body h3 { font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--text-main); }
+        .step-body p { line-height: 1.8; color: var(--text-dim); margin-bottom: 0.75rem; }
+        .content h2 { font-size: 1.4rem; color: var(--accent); margin: 2.5rem 0 1.25rem; }
+        .content p { line-height: 1.85; color: var(--text-dim); margin-bottom: 1.25rem; }
+        .content ul { padding-left: 1.5rem; color: var(--text-dim); line-height: 2; margin-bottom: 1.25rem; }
+        .content code {
+            background: rgba(245,158,11,0.1);
+            color: var(--warning);
+            padding: 0.15rem 0.5rem;
+            border-radius: 0.4rem;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background: rgba(15,23,42,0.8);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1rem 0 1.5rem;
+            color: var(--accent);
+            font-family: monospace;
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+        .callout {
+            background: rgba(245,158,11,0.07);
+            border: 1px solid rgba(245,158,11,0.25);
+            border-radius: 1rem;
+            padding: 1.25rem 1.5rem;
+            margin: 2rem 0;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+        .callout strong { color: var(--warning); }
+        footer {
+            margin-top: 4rem;
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html" class="logo">MyMiniCloud</a>
+        <a href="index.html" class="back-btn">← Back to Home</a>
+    </nav>
+
+    <article>
+        <div class="meta">
+            <span class="tag">AWS</span>
+            <span class="tag">EC2</span>
+            <span class="tag">DevOps</span>
+            <span class="date">April 10, 2026</span>
+        </div>
+
+        <h1>Deploying MyMiniCloud to AWS EC2</h1>
+
+        <div class="hero-img" id="blog3-img">
+            <!-- Place your image here: <img src="images/blog3.jpg" alt="AWS EC2 Deploy"> -->
+            <span>📷 Add your image here (recommended: 1280×560px)</span>
+        </div>
+
+        <div class="content">
+            <p>
+                Running MyMiniCloud locally is great for development, but the real test is deploying it to
+                a cloud VM. This guide walks through the full process of launching an AWS EC2 instance and
+                getting all 9 containers running in production.
+            </p>
+
+            <h2>Prerequisites</h2>
+            <ul>
+                <li>An AWS account with EC2 access</li>
+                <li>An SSH key pair (<code>.pem</code> file)</li>
+                <li>The MyMiniCloud repository pushed to GitHub</li>
+            </ul>
+
+            <h2>Step-by-Step Deployment</h2>
+
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-body">
+                    <h3>Launch EC2 Instance</h3>
+                    <p>Choose <strong>Ubuntu 22.04 LTS</strong>, instance type <code>t2.small</code> (2GB RAM recommended).
+                    In Security Groups, open ports: 22, 80, 8080, 8081, 8085, 9000, 9001, 9090, 3000.</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-body">
+                    <h3>SSH into the Instance</h3>
+                    <pre>ssh -i your-key.pem ubuntu@&lt;EC2-PUBLIC-IP&gt;</pre>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-body">
+                    <h3>Run the Deploy Script</h3>
+                    <p>The project includes a <code>deploy.sh</code> script that installs Docker, clones the repo, and starts all containers automatically.</p>
+                    <pre>
+curl -O https://raw.githubusercontent.com/YOUR_USERNAME/MyMiniCloud/main/deploy.sh
+bash deploy.sh</pre>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-num">4</div>
+                <div class="step-body">
+                    <h3>Verify All Services Are Running</h3>
+                    <pre>
+docker compose ps
+# All services should show "Up"</pre>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-num">5</div>
+                <div class="step-body">
+                    <h3>Access the Platform</h3>
+                    <p>Once running, the services are accessible at:</p>
+                    <ul>
+                        <li>Dashboard: <code>http://&lt;EC2-IP&gt;:8080</code></li>
+                        <li>App API: <code>http://&lt;EC2-IP&gt;:8085/health</code></li>
+                        <li>Auth: <code>http://&lt;EC2-IP&gt;:8081/login</code></li>
+                        <li>MinIO Console: <code>http://&lt;EC2-IP&gt;:9001</code></li>
+                        <li>Grafana: <code>http://&lt;EC2-IP&gt;:3000</code></li>
+                        <li>Prometheus: <code>http://&lt;EC2-IP&gt;:9090</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="callout">
+                <strong>⚠️ RAM Warning:</strong> Running 9+ containers on <code>t2.micro</code> (1GB RAM) may cause OOM errors.
+                Add a 2GB swap file: <br><code>sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile</code>
+            </div>
+
+            <h2>Updating the Deployment</h2>
+            <p>After pushing new code to GitHub, update the EC2 deployment with:</p>
+            <pre>
+cd ~/MyMiniCloud
+git pull
+docker compose up --build -d</pre>
+        </div>
+    </article>
+
+    <footer>
+        &copy; 2026 MyMiniCloud &mdash; <a href="index.html" style="color: var(--accent);">Back to Dashboard</a>
+    </footer>
+</body>
+</html>

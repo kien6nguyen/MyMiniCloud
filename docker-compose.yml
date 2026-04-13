@@ -1,9 +1,9 @@
 
 services:
-  # 1. Web Server
-  web-server:
+  # 1. Web Servers (Load Balanced)
+  web-frontend-server1:
     image: nginx:alpine
-    container_name: web-server
+    container_name: web-frontend-server1
     volumes:
       - ./services/web-server/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./services/web-server/html:/usr/share/nginx/html:ro
@@ -12,10 +12,23 @@ services:
     depends_on:
       - app-server
 
-  # 2. Application Server
+  web-frontend-server2:
+    image: nginx:alpine
+    container_name: web-frontend-server2
+    volumes:
+      - ./services/web-server/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./services/web-server/html:/usr/share/nginx/html:ro
+    networks:
+      - cloud-net
+    depends_on:
+      - app-server
+
+  # 2. Application Server (host: 8085 → container: 8081)
   app-server:
     build: ./services/app-server
     container_name: app-server
+    ports:
+      - "8085:8081"
     environment:
       - DB_HOST=db-server
       - DB_USER=postgres
@@ -27,10 +40,12 @@ services:
       - db-server
       - auth-server
 
-  # 3. Database Server
+  # 3. Database Server (host: 3306 → container: 5432)
   db-server:
     image: postgres:15-alpine
     container_name: db-server
+    ports:
+      - "3306:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=mycloudroot
@@ -40,18 +55,37 @@ services:
     networks:
       - cloud-net
 
-  # 4. Authentication Server
+  # 4. Authentication Server - Keycloak (host: 8081 → container: 8080)
   auth-server:
-    build: ./services/auth-server
+    image: quay.io/keycloak/keycloak:latest
     container_name: auth-server
+    command: start-dev
+    environment:
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://db-server:5432/cloud_db
+      - KC_DB_USERNAME=postgres
+      - KC_DB_PASSWORD=mycloudroot
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_HEALTH_ENABLED=true
+      - KC_HTTP_RELATIVE_PATH=/auth
+      - KC_HOSTNAME_STRICT=false
+      - KC_PROXY_HEADERS=xforwarded
+    ports:
+      - "8081:8080"
     networks:
       - cloud-net
+    depends_on:
+      - db-server
 
-  # 5. File Storage / Object Storage
+  # 5. File Storage / Object Storage (host: 9000/9001 → container: 9000/9001)
   storage-server:
     image: minio/minio
     container_name: storage-server
     command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
     environment:
       - MINIO_ROOT_USER=cloudadmin
       - MINIO_ROOT_PASSWORD=cloudstorage
@@ -60,49 +94,63 @@ services:
     networks:
       - cloud-net
 
-  # 6. DNS / Name Service
+  # 6. DNS / Name Service (host: 1053/udp → container: 53/udp)
   dns-server:
     image: coredns/coredns
     container_name: dns-server
+    ports:
+      - "1053:53/udp"
     volumes:
       - ./networking/coredns/Corefile:/Corefile
+      - ./networking/coredns/db.cloud.local:/etc/coredns/db.cloud.local
     command: -conf /Corefile
     networks:
       - cloud-net
 
-  # 7. Monitoring Server
+  # 7. Monitoring Server - Prometheus (host: 9090 → container: 9090)
   monitoring-server:
     image: prom/prometheus
     container_name: monitoring-server
+    ports:
+      - "9090:9090"
     volumes:
       - ./services/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
       - cloud-net
 
-  # 8. Logging / Visualization Server
-  logging-server:
-    image: grafana/grafana
-    container_name: logging-server
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+  # 7b. Node Exporter (host: 9100 → container: 9100)
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
     ports:
-      - "3000:3000"
+      - "9100:9100"
     networks:
       - cloud-net
 
-  # 9. Reverse Proxy / Load Balancer
+  # 8. Logging / Visualization Server - Grafana (host: 3000 → container: 3000)
+  logging-server:
+    image: grafana/grafana
+    container_name: logging-server
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - cloud-net
+
+  # 9. Reverse Proxy / Load Balancer (host: 80 → container: 80)
   proxy-server:
     image: nginx:alpine
     container_name: proxy-server
     ports:
       - "80:80"
-      - "443:443"
     volumes:
       - ./services/proxy-server/nginx.conf:/etc/nginx/nginx.conf:ro
     networks:
       - cloud-net
     depends_on:
-      - web-server
+      - web-frontend-server1
+      - web-frontend-server2
       - app-server
 
 networks:

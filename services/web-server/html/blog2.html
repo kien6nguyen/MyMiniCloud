@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nginx as Reverse Proxy | MyMiniCloud Blog</title>
+    <meta name="description" content="How Nginx acts as the single entry point and reverse proxy routing traffic to all backend services in MyMiniCloud.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --accent: #22d3ee;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image: radial-gradient(circle at top right, rgba(99,102,241,0.15), transparent),
+                              radial-gradient(circle at bottom left, rgba(34,211,238,0.1), transparent);
+        }
+        nav {
+            padding: 1.5rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: gap 0.2s;
+        }
+        .back-btn:hover { gap: 0.75rem; }
+        article {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem 6rem;
+        }
+        .meta {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .tag {
+            padding: 0.25rem 0.85rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(34,211,238,0.1);
+            color: var(--accent);
+            border: 1px solid rgba(34,211,238,0.3);
+        }
+        .date { font-size: 0.85rem; color: var(--text-dim); }
+        h1 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--text-main), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-img {
+            width: 100%;
+            aspect-ratio: 16/7;
+            background: var(--card-bg);
+            border-radius: 1.25rem;
+            border: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2.5rem;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            overflow: hidden;
+        }
+        .hero-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 1.25rem; display: none; }
+        .hero-img img.loaded { display: block; }
+        .content h2 { font-size: 1.4rem; color: var(--accent); margin: 2.5rem 0 1rem; }
+        .content p { line-height: 1.85; color: var(--text-dim); margin-bottom: 1.25rem; }
+        .content ul { padding-left: 1.5rem; color: var(--text-dim); line-height: 2; margin-bottom: 1.25rem; }
+        .content code {
+            background: rgba(34,211,238,0.1);
+            color: var(--accent);
+            padding: 0.15rem 0.5rem;
+            border-radius: 0.4rem;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        .content pre {
+            background: rgba(15,23,42,0.8);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            color: var(--accent);
+            font-family: monospace;
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+        .diagram {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: var(--accent);
+            line-height: 1.8;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        footer {
+            margin-top: 4rem;
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html" class="logo">MyMiniCloud</a>
+        <a href="index.html" class="back-btn">← Back to Home</a>
+    </nav>
+
+    <article>
+        <div class="meta">
+            <span class="tag">Nginx</span>
+            <span class="tag">Networking</span>
+            <span class="date">April 10, 2026</span>
+        </div>
+
+        <h1>Nginx as a Reverse Proxy in MyMiniCloud</h1>
+
+        <div class="hero-img" id="blog2-img">
+            <!-- Place your image here: <img src="images/blog2.jpg" alt="Nginx Reverse Proxy"> -->
+            <span>📷 Add your image here (recommended: 1280×560px)</span>
+        </div>
+
+        <div class="content">
+            <p>
+                In MyMiniCloud, Nginx plays two distinct roles: a <strong>web server</strong> that delivers static content,
+                and a <strong>reverse proxy</strong> that acts as the single entry point for all incoming traffic.
+                Understanding this dual role is key to understanding the platform's architecture.
+            </p>
+
+            <h2>What is a Reverse Proxy?</h2>
+            <p>
+                A reverse proxy sits in front of your backend services. When a user makes a request to port 80,
+                Nginx receives it and decides which internal service should handle it — the user never communicates
+                directly with Flask, PostgreSQL, or MinIO.
+            </p>
+
+            <div class="diagram">User Browser
+     │
+     ▼  :80
+proxy-server (Nginx)
+     │
+     ├─── /api/*      ──►  app-server:8081
+     ├─── /auth/*     ──►  auth-server:5000
+     ├─── /storage/*  ──►  storage-server:9000
+     └─── /*          ──►  web-server:80</div>
+
+            <h2>Benefits in This Setup</h2>
+            <ul>
+                <li><strong>Single entry point</strong> — only port 80 needs to be open to the internet</li>
+                <li><strong>Path-based routing</strong> — <code>/api/*</code> goes to Flask, <code>/*</code> goes to Nginx static</li>
+                <li><strong>SSL termination</strong> — HTTPS can be configured once at the proxy, not per service</li>
+                <li><strong>Load balancing</strong> — easily scale by adding more <code>app-server</code> instances</li>
+            </ul>
+
+            <h2>Key nginx.conf Configuration</h2>
+            <pre>
+upstream app_backend {
+    server app-server:8081;
+}
+
+server {
+    listen 80;
+
+    # Route API calls to Flask
+    location /api/ {
+        proxy_pass http://app_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    # Serve static files via web-server
+    location / {
+        proxy_pass http://web-server:80;
+    }
+}</pre>
+
+            <h2>web-server vs proxy-server</h2>
+            <p>
+                Both containers run Nginx but serve different purposes.
+                <code>web-server</code> only knows about static files in <code>/usr/share/nginx/html</code>.
+                <code>proxy-server</code> knows about all the backend services and acts as the traffic controller.
+                This separation makes each service independently replaceable.
+            </p>
+        </div>
+    </article>
+
+    <footer>
+        &copy; 2026 MyMiniCloud &mdash; <a href="index.html" style="color: var(--accent);">Back to Dashboard</a>
+    </footer>
+</body>
+</html>

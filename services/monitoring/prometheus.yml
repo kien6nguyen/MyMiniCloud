@@ -3,23 +3,24 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
+  # Prometheus tự scrape chính nó
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: 'app-server'
-    # App Server metrics exposed via Flask-Prometheus or similar
-    # For now, we'll try to reach it directly
+  # Node Exporter — metrics CPU, RAM, disk của máy host
+  - job_name: 'node-exporter'
     static_configs:
-      - targets: ['app-server:5000']
-    metrics_path: '/health' # Mocking metrics for now
+      - targets: ['node-exporter:9100']
 
+  # CoreDNS — metrics của DNS server
   - job_name: 'dns-server'
     static_configs:
       - targets: ['dns-server:9153']
 
-  - job_name: 'db-server'
-    # PostgreSQL exporter would go here
-    # Use static target for now
+  # App Server — scrape health endpoint (basic)
+  # Để có metrics chuẩn Prometheus thì cần thêm flask-prometheus-metrics
+  - job_name: 'app-server'
     static_configs:
-      - targets: ['db-server:5432'] 
+      - targets: ['app-server:8081']
+    metrics_path: '/metrics'
