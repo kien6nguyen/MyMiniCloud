@@ -1,3 +1,13 @@
+curl.exe -I http://localhost:8080/
+curl.exe -I http://localhost:8080/blog
+
+curl.exe http://localhost:8085/hello
+
+docker exec db-server psql -U postgres -d cloud_db -c "SELECT * FROM notes;"
+
+docker exec web-frontend-server1 nslookup web-frontend-server.cloud.local dns-server
+
+http://monitoring-server:9090
 Keycloak
 admin
 admin

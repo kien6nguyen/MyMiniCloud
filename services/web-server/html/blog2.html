@@ -174,24 +174,24 @@
 
             <h2>What is a Reverse Proxy?</h2>
             <p>
-                A reverse proxy sits in front of your backend services. When a user makes a request to port 80,
+                A reverse proxy sits in front of your backend services. When a user makes a request to port 8080,
                 Nginx receives it and decides which internal service should handle it — the user never communicates
                 directly with Flask, PostgreSQL, or MinIO.
             </p>
 
             <div class="diagram">User Browser
      │
-     ▼  :80
+     ▼  :8080
 proxy-server (Nginx)
      │
-     ├─── /api/*      ──►  app-server:8081
-     ├─── /auth/*     ──►  auth-server:5000
-     ├─── /storage/*  ──►  storage-server:9000
-     └─── /*          ──►  web-server:80</div>
+      ├─── /api/*      ──►  app-server:8081
+      ├─── /auth/*     ──►  auth-server:8080
+      ├─── /storage/*  ──►  storage-server:9000
+      └─── /*          ──►  web-server:80</div>
 
             <h2>Benefits in This Setup</h2>
             <ul>
-                <li><strong>Single entry point</strong> — only port 80 needs to be open to the internet</li>
+                <li><strong>Single entry point</strong> — only port 8080 needs to be open to the internet</li>
                 <li><strong>Path-based routing</strong> — <code>/api/*</code> goes to Flask, <code>/*</code> goes to Nginx static</li>
                 <li><strong>SSL termination</strong> — HTTPS can be configured once at the proxy, not per service</li>
                 <li><strong>Load balancing</strong> — easily scale by adding more <code>app-server</code> instances</li>

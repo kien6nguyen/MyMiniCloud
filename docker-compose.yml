@@ -101,8 +101,8 @@ services:
     ports:
       - "1053:53/udp"
     volumes:
-      - ./networking/coredns/Corefile:/Corefile
-      - ./networking/coredns/db.cloud.local:/etc/coredns/db.cloud.local
+      - ./services/dns-server/Corefile:/Corefile
+      - ./services/dns-server/db.cloud.local:/etc/coredns/db.cloud.local
     command: -conf /Corefile
     networks:
       - cloud-net

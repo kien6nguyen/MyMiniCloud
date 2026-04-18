@@ -61,7 +61,7 @@ PUBLIC_IP=$(curl -s http://checkip.amazonaws.com)
 echo "  🌐 Public IP: $PUBLIC_IP"
 echo ""
 echo "  Services accessible at:"
-echo "  → Reverse Proxy : http://$PUBLIC_IP:80"
+echo "  → Reverse Proxy : http://$PUBLIC_IP:8080"
 echo "  → Web Server    : http://$PUBLIC_IP:8080"
 echo "  → App API       : http://$PUBLIC_IP:8085/health"
 echo "  → Auth Server   : http://$PUBLIC_IP:8081"

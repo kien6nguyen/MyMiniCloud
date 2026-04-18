@@ -10,12 +10,13 @@ $ORIGIN cloud.local.
         3600 IN NS a.iana-servers.net.
         3600 IN NS b.iana-servers.net.
 
-web-frontend-server  IN A 10.10.10.10
-app-backend          IN A 10.10.10.20
-minio                IN A 10.10.10.30
-keycloak             IN A 10.10.10.40
+; Bản ghi các service
+web-frontend-server.cloud.local.    IN A 10.10.10.10
+app-backend.cloud.local.            IN A 10.10.10.20
+minio.cloud.local.                  IN A 10.10.10.30
+keycloak.cloud.local.               IN A 10.10.10.40
 
-; Bản ghi cũ trỏ vào container (nếu cần)
-m-web                IN A 172.28.0.2
-m-app                IN A 172.28.0.3
-m-db                 IN A 172.28.0.4
+; Bản ghi m-* (tùy chọn)
+m-web.cloud.local.                  IN A 172.24.0.11
+m-app.cloud.local.                  IN A 172.24.0.9
+m-db.cloud.local.                   IN A 172.24.0.3
