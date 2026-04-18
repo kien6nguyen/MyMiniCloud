@@ -18,6 +18,7 @@ cloudstorage
 
 docker run --rm --network myminicloud_cloud-net nicolaka/netshoot dig @dns-server web-frontend-server.cloud.local +short
 
+docker run --rm --network myminicloud_cloud-net nicolaka/netshoot dig @dns-server app-backend.cloud.local minio.cloud.local keycloak.cloud.local +short
 docker exec proxy-server ping -c 3 web-server
 docker exec proxy-server ping -c 3 app-server
 docker exec proxy-server ping -c 3 db-server
@@ -26,3 +27,9 @@ docker exec proxy-server ping -c 3 storage-server
 docker exec proxy-server ping -c 3 monitoring-server
 docker exec proxy-server ping -c 3 logging-server
 docker exec proxy-server ping -c 3 dns-server
+
+for ($i=1; $i -le 10; $i++) { 
+    $h = curl.exe -s -I http://localhost/ 
+    $ip = ($h | Select-String "X-Backend-Server").ToString().Split(":")[-2].Trim()
+    Write-Host "Lượt $($i) -> Frontend IP: $ip" -ForegroundColor Cyan
+}
